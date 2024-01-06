@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { Button, Flex,notification, Input, Spin, Table,Space } from 'antd';
-import { DownloadOutlined, CopyOutlined, SearchOutlined } from '@ant-design/icons';
+import { DownloadOutlined,RocketOutlined, CopyOutlined, SearchOutlined,DeliveredProcedureOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 
 import "./styles.css";
@@ -13,6 +13,7 @@ function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [listNum, setListNum] = useState([]);
   const [getCode, setGetCode] = useState({ path: "", port: null, num: null });
+  const [portActive, setPortActive] = useState();
   const {post} = Requests();
   useEffect(() => {
     const getData = localStorage.getItem('arrNum') ? JSON.parse(localStorage.getItem('arrNum')) : [];
@@ -214,9 +215,27 @@ function Home() {
     return <>
         {isLoading && <Spin size="large" fullscreen />}
         {contextHolder}
-
+      <div style={{ width: "100%", display: "flex" }}>
+        <div style={{ width: '20%' ,margin: '10px'}}>
+          <Button type="primary" icon={<RocketOutlined/>} onClick={handleGetPhone}> Chạy lấy số điện thoại</Button>
+          
+        </div>
+        <div style={{ width: '20%' ,margin: '10px'}}>
+          <Button type="primary" icon={<DeliveredProcedureOutlined />} onClick={handleGetPhone}> Lấy 1 số</Button>
+          
+        </div>
+        <div style={{ width: '20%', margin: '10px' }}>
+          <Input onChange={(e)=>{setPortActive(e.target.value)}} value={portActive} name="port" placeholder="vui lòng nhập port"></Input>
+          <Button  onClick={handleGetPhone}> Active Port</Button>
+          
+        </div>
+        <div style={{ width: '20%' ,margin: '10px'}}>
+          <Button danger onClick={handleGetPhone}>Restart</Button>
+          
+        </div>
+        </div>
 <Table style={{margin:'20px 80px'}} dataSource={listNum} columns={columns} />
-      <Button onClick={handleGetPhone}> Chạy lấy số điện thoại</Button>
+      
       <div style={{ width: "100%" ,display:"flex"}}>
         <div style={{ width: '40%',margin: '10px' }}>
           <span>Path:</span>
