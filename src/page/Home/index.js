@@ -11,6 +11,7 @@ function Home() {
     const [api, contextHolder] = notification.useNotification()
     const [isLoading, setIsLoading] = useState(false)
     const [listNum, setListNum] = useState([])
+    const [listUrl, setListUrl] = useState([])
     const [getCode, setGetCode] = useState({ path: '', port: null, num: null })
     const [portActive, setPortActive] = useState()
     const { post, get } = Requests()
@@ -21,14 +22,14 @@ function Home() {
         handleGetPhone()
     }, [])
     const handleGetPhone = async () => {
-        try {
-            setIsLoading(true)
-            const response = await get(`http://localhost:5000/getListPhone`)
-            setListNum(response.data)
-            setIsLoading(false)
-        } catch (error) {
-            console.error('Error active port number:', error)
-        }
+        // try {
+        //     setIsLoading(true)
+        //     const response = await get(`http://localhost:5000/getListPhone`)
+        //     setListNum(response.data)
+        //     setIsLoading(false)
+        // } catch (error) {
+        //     console.error('Error active port number:', error)
+        // }
     }
 
     const handleGetOnePhone = async () => {
@@ -60,22 +61,32 @@ function Home() {
     const handleGetVoice = async () => {
         //save path xuống localstorage
         localStorage.setItem('pathGetVoice', JSON.stringify(getCode.path))
-        let filePath = `${getCode.path}\\${getCode.port}\\${getCode.num}\\${getCode.port}_${getCode.num}.mp4`.replaceAll('/', '\\')
+        let filePath = `${getCode.path}`.replaceAll('/', '\\')
         const body = {
-            filePath: filePath,
+            folderPath: filePath,
         }
         console.log('gọi api upload ==>lấy link')
-        const result = await post('uploadFromPath', body)
-        console.log('RESULT->', result)
-        if (result.status !== 200) {
-            setIsCopy(false)
-            setCopyText(null)
-            openNotificationWithIcon('error', 'Thất bại', result.data.error)
-        } else {
-            openNotificationWithIcon('success', 'Thành công', result.data.message)
-            setIsCopy(true)
-            setCopyText(result.data.message.split('|->')[1])
-        }
+
+        const intervalId = setInterval(async () => {
+            const result = await post('uploadFromPath', body)
+            const dataUrl = await get('/getvoice/0/0')
+            //console.log()
+            setListUrl(dataUrl.data.filter((data) => data !== null))
+
+            console.log('RESULT->', result)
+            if (result.status !== 200) {
+                // setIsCopy(false)
+                // setCopyText(null)
+                openNotificationWithIcon('error', 'Thất bại', result.data.error)
+            } else {
+                openNotificationWithIcon('success', 'Thành công', result.data.message)
+                // setIsCopy(true)
+                // setCopyText(result.data.message.split('|->')[1])
+            }
+        }, 2000)
+
+        // Clear interval khi component bị unmount để tránh memory leaks
+        return () => clearInterval(intervalId)
     }
     const handleOnchangeInput = (e) => {
         console.log(e)
@@ -215,6 +226,26 @@ function Home() {
             ...getColumnSearchProps('status'),
         },
     ]
+    const columns2 = [
+        {
+            title: 'port',
+            dataIndex: 'port',
+            key: 'port',
+            ...getColumnSearchProps('port'),
+        },
+        {
+            title: 'phone',
+            dataIndex: 'phone',
+            key: 'phone',
+            ...getColumnSearchProps('phone'),
+        },
+        {
+            title: 'url',
+            dataIndex: 'url',
+            key: 'url',
+            ...getColumnSearchProps('url'),
+        },
+    ]
     return (
         <>
             {isLoading && <Spin size="large" fullscreen />}
@@ -264,47 +295,13 @@ function Home() {
                         placeholder="Vui lòng nhập vào đường dẫn chứa voice"
                     ></Input>
                 </div>
-                <div style={{ width: '10%', margin: '10px' }}>
-                    <span>Port:</span>
-                    <Input
-                        onChange={(e) => {
-                            handleOnchangeInput(e)
-                        }}
-                        name="port"
-                        value={getCode.port}
-                        placeholder="Vui lòng nhập vào port"
-                    ></Input>
-                </div>
-                <div style={{ width: '30%', margin: '10px' }}>
-                    <span>Number Phone:</span>
-                    <Input
-                        onChange={(e) => {
-                            handleOnchangeInput(e)
-                        }}
-                        name="num"
-                        value={getCode.num}
-                        placeholder="Vui lòng nhập số điện thoại"
-                    ></Input>
-                </div>
                 <div style={{ width: '20%', margin: '10px', marginTop: 30 }}>
                     <Button type="primary" icon={<DownloadOutlined />} onClick={handleGetVoice}>
-                        Lấy Link Voice
+                        Bắt Đầu Lấy Link Voice
                     </Button>
                 </div>
-                {isCopy && (
-                    <div style={{ width: '15%', margin: '10px', marginTop: 30 }}>
-                        <Button
-                            icon={<CopyOutlined />}
-                            onClick={() => {
-                                navigator.clipboard.writeText(copyText)
-                                openNotificationWithIcon('info', 'Đã copy nội dung', copyText)
-                            }}
-                        >
-                            Copy Link Voice
-                        </Button>
-                    </div>
-                )}
             </div>
+            <Table style={{ margin: '20px 80px' }} dataSource={listUrl} columns={columns2} />
         </>
     )
 }
