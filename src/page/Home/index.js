@@ -25,9 +25,19 @@ function Home() {
         const pathGetVoice = localStorage.getItem('pathGetVoice') ? JSON.parse(localStorage.getItem('pathGetVoice')) : ''
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
-        getListCurrentPhone()
+        getListCurrentPhone(0)
         initData()
+        handleHome([])
     }, [])
+
+    const handleHome = async () => {
+        try {
+            const response = await get('http://localhost:5000/')
+            console.log(response)
+        } catch (error) {
+            console.error('Error active port number:', error)
+        }
+    }
 
     const handleGetPhone = async () => {
         try {
@@ -43,12 +53,14 @@ function Home() {
         }
     }
 
-    const getListCurrentPhone = async () => {
+    const getListCurrentPhone = async (check = 1) => {
         try {
             setIsLoading(true)
             const response = await get(`http://localhost:5000/get-list-current-phone`)
-            if (response.data && response.data.length === 0) {
-                openNotificationWithIcon('warning', 'Không có số mới', response.data)
+            if (check !== 0) {
+                if (response.data && response.data.length === 0) {
+                    openNotificationWithIcon('warning', 'Không có số mới', response.data)
+                }
             }
             setListNum(response.data)
             setIsLoading(false)
@@ -61,8 +73,12 @@ function Home() {
         try {
             setIsLoading(true)
             const response = await get('http://localhost:5000/get-phone')
-            openNotificationWithIcon('info', 'Phone', response.data)
-            getListCurrentPhone()
+            if (response.data !== -1) {
+                openNotificationWithIcon('info', 'Phone', response.data)
+            } else {
+                openNotificationWithIcon('warning', 'Hết phone')
+            }
+            getListCurrentPhone(0)
             setIsLoading(false)
         } catch (error) {
             console.error('Error fetching phone number:', error)
