@@ -49,8 +49,6 @@ function Home() {
             const response = await get(`http://localhost:5000/get-list-current-phone`)
             if (response.data && response.data.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
-            } else {
-                openNotificationWithIcon('warning', 'Đã lấy hết số')
             }
             setListNum(response.data)
             setIsLoading(false)
@@ -76,7 +74,6 @@ function Home() {
             setIsLoading(true)
             const response = await get(`http://localhost:5000/active/${portActive}`)
             openNotificationWithIcon('info', response.data)
-            getListCurrentPhone()
             setIsLoading(false)
         } catch (error) {
             console.error('Error active port number:', error)
