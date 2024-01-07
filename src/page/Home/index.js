@@ -303,14 +303,14 @@ function Home() {
                         Chạy lấy số điện thoại
                     </Button>
                 </div>
-                <div style={{ width: '20%', margin: '10px' }}>
+                {/* <div style={{ width: '20%', margin: '10px' }}>
                     <Button type="primary" icon={<DeliveredProcedureOutlined />} onClick={handleGetOnePhone}>
                         {' '}
                         Lấy 1 số
                     </Button>
-                </div>
+                </div> */}
 
-                <div style={{ width: '20%', margin: '10px' }}>
+                {/* <div style={{ width: '20%', margin: '10px' }}>
                     <Input
                         onChange={(e) => {
                             setPortActive(e.target.value)
@@ -320,7 +320,7 @@ function Home() {
                         placeholder="vui lòng nhập port"
                     ></Input>
                     <Button onClick={handleActivePort}> Active Port</Button>
-                </div>
+                </div> */}
                 <div style={{ width: '20%', margin: '10px' }}>
                     <Button danger onClick={handleGetPhone}>
                         Restart
