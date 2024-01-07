@@ -18,12 +18,24 @@ function Home() {
         const pathGetVoice = localStorage.getItem('pathGetVoice') ? JSON.parse(localStorage.getItem('pathGetVoice')) : ''
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
-        handleGetPhone()
+        getListCurrentPhone()
     }, [])
+
     const handleGetPhone = async () => {
         try {
             setIsLoading(true)
-            const response = await get(`http://localhost:5000/getListPhone`)
+            const response = await get(`http://localhost:5000/get-list-phone-active`)
+            setListNum(response.data)
+            setIsLoading(false)
+        } catch (error) {
+            console.error('Error active port number:', error)
+        }
+    }
+
+    const getListCurrentPhone = async () => {
+        try {
+            setIsLoading(true)
+            const response = await get(`http://localhost:5000/get-list-current-phone`)
             setListNum(response.data)
             setIsLoading(false)
         } catch (error) {
@@ -34,9 +46,9 @@ function Home() {
     const handleGetOnePhone = async () => {
         try {
             setIsLoading(true)
-            const response = await get('http://localhost:5000/getPhone')
+            const response = await get('http://localhost:5000/get-phone')
             openNotificationWithIcon('info', 'Phone', response.data)
-            handleGetPhone()
+            getListCurrentPhone()
             setIsLoading(false)
         } catch (error) {
             console.error('Error fetching phone number:', error)
@@ -48,7 +60,7 @@ function Home() {
             setIsLoading(true)
             const response = await get(`http://localhost:5000/active/${portActive}`)
             openNotificationWithIcon('info', response.data)
-            handleGetPhone()
+            getListCurrentPhone()
             setIsLoading(false)
         } catch (error) {
             console.error('Error active port number:', error)
@@ -197,19 +209,19 @@ function Home() {
     })
     const columns = [
         {
-            title: 'port',
+            title: 'Port',
             dataIndex: 'port',
             key: 'port',
             ...getColumnSearchProps('port'),
         },
         {
-            title: 'num',
+            title: 'Số điện thoại',
             dataIndex: 'num',
             key: 'num',
             ...getColumnSearchProps('num'),
         },
         {
-            title: 'status',
+            title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
             ...getColumnSearchProps('status'),
