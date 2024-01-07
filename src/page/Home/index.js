@@ -33,6 +33,9 @@ function Home() {
         try {
             setIsLoading(true)
             const response = await get(`http://localhost:5000/get-list-phone-active`)
+            if (response.data && response.data.length === 0) {
+                openNotificationWithIcon('warning', 'Không có số mới', response.data)
+            }
             setListNum(response.data)
             setIsLoading(false)
         } catch (error) {
@@ -44,6 +47,11 @@ function Home() {
         try {
             setIsLoading(true)
             const response = await get(`http://localhost:5000/get-list-current-phone`)
+            if (response.data && response.data.length === 0) {
+                openNotificationWithIcon('warning', 'Không có số mới', response.data)
+            } else {
+                openNotificationWithIcon('warning', 'Đã lấy hết số')
+            }
             setListNum(response.data)
             setIsLoading(false)
         } catch (error) {
