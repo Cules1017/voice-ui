@@ -12,14 +12,21 @@ function Home() {
     const [isLoading, setIsLoading] = useState(false)
     const [listNum, setListNum] = useState([])
     const [listUrl, setListUrl] = useState([])
+    const [statics, setStatics] = useState({ total: 0, success: 0, failed: 0 })
     const [getCode, setGetCode] = useState({ path: '', port: null, num: null })
     const [portActive, setPortActive] = useState()
     const { post, get } = Requests()
+    const initData = async () => {
+        const staticsData = await get(`getInfoStatics`)
+        console.log(staticsData)
+        // setStatics((.data)
+    }
     useEffect(() => {
         const pathGetVoice = localStorage.getItem('pathGetVoice') ? JSON.parse(localStorage.getItem('pathGetVoice')) : ''
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
         getListCurrentPhone()
+        initData()
     }, [])
 
     const handleGetPhone = async () => {
@@ -82,7 +89,7 @@ function Home() {
         const intervalId = setInterval(async () => {
             const result = await post('uploadFromPath', body)
             const dataUrl = await get('/getvoice/0/0')
-            //console.log()
+            setStatics((await get(`http://localhost:5000/getInfoStatics`)).data)
             setListUrl(dataUrl.data.filter((data) => data !== null))
 
             console.log('RESULT->', result)
@@ -262,6 +269,12 @@ function Home() {
         <>
             {isLoading && <Spin size="large" fullscreen />}
             {contextHolder}
+            <div>
+                <h3>Thống kê</h3>
+                <div>Tổng:{statics.total}</div>
+                <div>Thành công:{statics.success}</div>
+                <div>Thất bại:{statics.failed}</div>
+            </div>
             <div style={{ width: '100%', display: 'flex' }}>
                 <div style={{ width: '20%', margin: '10px' }}>
                     <Button type="primary" icon={<RocketOutlined />} onClick={handleGetPhone}>
