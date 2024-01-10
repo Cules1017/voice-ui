@@ -32,7 +32,7 @@ function Home() {
 
     const handleHome = async () => {
         try {
-            const response = await get('http://localhost:5000/')
+            const response = await get('http://trum99.ddns.net:5000/')
             console.log(response)
         } catch (error) {
             console.error('Error active port number:', error)
@@ -42,7 +42,7 @@ function Home() {
     const handleGetPhone = async () => {
         try {
             setIsLoading(true)
-            const response = await get(`http://localhost:5000/get-list-phone-active`)
+            const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
             if (response.data && response.data.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
             }
@@ -56,7 +56,7 @@ function Home() {
     const getListCurrentPhone = async (check = 1) => {
         try {
             setIsLoading(true)
-            const response = await get(`http://localhost:5000/get-list-current-phone`)
+            const response = await get(`http://trum99.ddns.net:5000/get-list-current-phone`)
             if (check !== 0) {
                 if (response.data && response.data.length === 0) {
                     openNotificationWithIcon('warning', 'Không có số mới', response.data)
@@ -72,7 +72,7 @@ function Home() {
     const handleGetOnePhone = async () => {
         try {
             setIsLoading(true)
-            const response = await get('http://localhost:5000/get-phone')
+            const response = await get('http://trum99.ddns.net:5000/get-phone')
             if (response.data !== -1) {
                 openNotificationWithIcon('info', 'Phone', response.data)
             } else {
@@ -88,7 +88,7 @@ function Home() {
     const handleActivePort = async () => {
         try {
             setIsLoading(true)
-            const response = await get(`http://localhost:5000/active/${portActive}`)
+            const response = await get(`http://trum99.ddns.net:5000/active/${portActive}`)
             openNotificationWithIcon('info', response.data)
             setIsLoading(false)
         } catch (error) {
@@ -108,9 +108,9 @@ function Home() {
         console.log('gọi api upload ==>lấy link')
 
         const intervalId = setInterval(async () => {
-            const result = await post('uploadFromPath', body)
+            const result = await post('http://localhost:5000/uploadFromPath', body)
             const dataUrl = await get('/getvoice/0/0')
-            setStatics((await get(`http://localhost:5000/getInfoStatics`)).data)
+            setStatics((await get(`http://trum99.ddns.net:5000/getInfoStatics`)).data)
             setListUrl(dataUrl.data.filter((data) => data !== null))
 
             console.log('RESULT->', result)

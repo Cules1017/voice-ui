@@ -2,7 +2,7 @@ import axios from 'axios'
 
 export const Requests = () => {
     const instance = axios.create({
-        baseURL: 'http://localhost:5000/',
+        baseURL: 'http://trum99.ddns.net:5000/',
     })
 
     instance.interceptors.request.use(
