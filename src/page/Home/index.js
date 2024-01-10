@@ -43,10 +43,10 @@ function Home() {
         try {
             setIsLoading(true)
             const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
-            if (response.data && response.data.length === 0) {
+            if (response?.data && response?.data?.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
             }
-            setListNum(response.data)
+            setListNum(response?.data && [])
             setIsLoading(false)
         } catch (error) {
             console.error('Error active port number:', error)
@@ -114,7 +114,7 @@ function Home() {
             setListUrl(dataUrl.data.filter((data) => data !== null))
 
             console.log('RESULT->', result)
-            if (result.status !== 200) {
+            if (result == undefined || result.status !== 200) {
                 // setIsCopy(false)
                 // setCopyText(null)
                 openNotificationWithIcon('error', 'Thất bại', result.data.error)
