@@ -43,10 +43,14 @@ function Home() {
         try {
             setIsLoading(true)
             const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
-            if (response?.data && response?.data?.length === 0) {
+            if (response?.data === -1) {
+                openNotificationWithIcon('warning', 'Hây lấy hết phone hiện tại trước khi chạy lấy danh sách phone mới')
+            } else if (response?.data && response?.data?.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
+            } else {
+                setListNum(response?.data && [])
             }
-            setListNum(response?.data && [])
+            getListCurrentPhone(0)
             setIsLoading(false)
         } catch (error) {
             console.error('Error active port number:', error)
@@ -149,10 +153,17 @@ function Home() {
         setSearchText(selectedKeys[0])
         setSearchedColumn(dataIndex)
     }
-    const handleReset = (clearFilters) => {
-        clearFilters()
-        setSearchText('')
+
+    const handleReset = () => {
+        try {
+            setIsLoading(true)
+            get(`http://trum99.ddns.net:5000/reset`)
+            setIsLoading(false)
+        } catch (error) {
+            console.error('Error active port number:', error)
+        }
     }
+
     const getColumnSearchProps = (dataIndex) => ({
         filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
             <div
@@ -185,7 +196,7 @@ function Home() {
                         Search
                     </Button>
                     <Button
-                        onClick={() => clearFilters && handleReset(clearFilters)}
+                        onClick={handleReset()}
                         size="small"
                         style={{
                             width: 90,
