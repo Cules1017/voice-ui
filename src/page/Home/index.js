@@ -46,7 +46,7 @@ function Home() {
             if (response?.data && response?.data?.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
             }
-            setListNum(response?.data && [])
+            setListNum(response?.data)
             setIsLoading(false)
         } catch (error) {
             console.error('Error active port number:', error)
