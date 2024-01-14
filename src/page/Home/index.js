@@ -42,12 +42,16 @@ function Home() {
     const handleGetPhone = async () => {
         try {
             setIsLoading(true)
-            const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
+            const resAPI = await get(`http://trum99.ddns.net:5000/getAPI`)
+            const response = await get(`http://trum99.ddns.net:5000/get-current-phone-active`)
             if (response?.data === -1) {
                 openNotificationWithIcon('warning', 'Hây lấy hết phone hiện tại trước khi chạy lấy danh sách phone mới')
             } else if (response?.data && response?.data?.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
             } else {
+                if (resAPI.data === 1) {
+                    openNotificationWithIcon('info', 'Đã lấy phone thành công')
+                }
                 setListNum(response?.data && [])
             }
             getListCurrentPhone(0)
@@ -271,10 +275,22 @@ function Home() {
             ...getColumnSearchProps('num'),
         },
         {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            ...getColumnSearchProps('status'),
+            title: 'Thành công',
+            dataIndex: 'success',
+            key: 'success',
+            ...getColumnSearchProps('success'),
+        },
+        {
+            title: 'Thất bại',
+            dataIndex: 'failed',
+            key: 'failed',
+            ...getColumnSearchProps('failed'),
+        },
+        {
+            title: 'Tổng phone',
+            dataIndex: 'sum',
+            key: 'sum',
+            ...getColumnSearchProps('sum'),
         },
     ]
     const columns2 = [
@@ -314,24 +330,6 @@ function Home() {
                         Chạy lấy số điện thoại
                     </Button>
                 </div>
-                {/* <div style={{ width: '20%', margin: '10px' }}>
-                    <Button type="primary" icon={<DeliveredProcedureOutlined />} onClick={handleGetOnePhone}>
-                        {' '}
-                        Lấy 1 số
-                    </Button>
-                </div> */}
-
-                {/* <div style={{ width: '20%', margin: '10px' }}>
-                    <Input
-                        onChange={(e) => {
-                            setPortActive(e.target.value)
-                        }}
-                        value={portActive}
-                        name="port"
-                        placeholder="vui lòng nhập port"
-                    ></Input>
-                    <Button onClick={handleActivePort}> Active Port</Button>
-                </div> */}
                 <div style={{ width: '20%', margin: '10px' }}>
                     <Button danger onClick={handleGetPhone}>
                         Restart
