@@ -13,8 +13,8 @@ function Home() {
     const [listNum, setListNum] = useState([])
     const [listUrl, setListUrl] = useState([])
     const [statics, setStatics] = useState({ total: 0, success: 0, failed: 0 })
+    const [statistic, setStatistic] = useState({ total: 0, success: 0, fail: 0 })
     const [getCode, setGetCode] = useState({ path: '', port: null, num: null })
-    const [portActive, setPortActive] = useState()
     const { post, get } = Requests()
     const initData = async () => {
         const staticsData = await get(`getInfoStatics`)
@@ -26,6 +26,7 @@ function Home() {
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
         getListCurrentPhone(0)
+        // getStatistic()
         initData()
         handleHome([])
     }, [])
@@ -77,35 +78,21 @@ function Home() {
         }
     }
 
-    const handleGetOnePhone = async () => {
+    const getStatistic = async () => {
         try {
-            setIsLoading(true)
-            const response = await get('http://trum99.ddns.net:5000/get-phone')
-            if (response.data !== -1) {
-                openNotificationWithIcon('info', 'Phone', response.data)
-            } else {
-                openNotificationWithIcon('warning', 'Hết phone')
+            const response = await get(`http://trum99.ddns.net:5000/statistic`)
+            const data = response.data
+            setStatistic(data)
+            if (parseInt(data.success) + parseInt(data.fail) === data.total) {
+                openNotificationWithIcon('warning', 'Đã lấy hết số, hãy thay sim mới', response.data)
             }
-            getListCurrentPhone(0)
+            setListNum(response.data)
             setIsLoading(false)
         } catch (error) {
-            console.error('Error fetching phone number:', error)
+            console.error('Error getStatistic:', error)
         }
     }
 
-    const handleActivePort = async () => {
-        try {
-            setIsLoading(true)
-            const response = await get(`http://trum99.ddns.net:5000/active/${portActive}`)
-            openNotificationWithIcon('info', response.data)
-            setIsLoading(false)
-        } catch (error) {
-            console.error('Error active port number:', error)
-        }
-    }
-
-    const [isCopy, setIsCopy] = useState(false)
-    const [copyText, setCopyText] = useState('1233333')
     const handleGetVoice = async () => {
         //save path xuống localstorage
         localStorage.setItem('pathGetVoice', JSON.stringify(getCode.path))
@@ -317,12 +304,22 @@ function Home() {
         <>
             {isLoading && <Spin size="large" fullscreen />}
             {contextHolder}
-            <div>
-                <h3>Thống kê</h3>
-                <div>Tổng:{statics.total}</div>
-                <div>Thành công:{statics.success}</div>
-                <div>Thất bại:{statics.failed}</div>
+            <div style={{ width: '100%', display: 'flex' }}>
+                <div style={{ width: '50%' }}>
+                    <h3>Thống kê</h3>
+                    <div>Tổng:{statics.total}</div>
+                    <div>Thành công:{statics.success}</div>
+                    <div>Thất bại:{statics.failed}</div>
+                </div>
+
+                <div style={{ width: '50%' }}>
+                    <h3>Thống kê số lượng sim</h3>
+                    <div>Tổng số phone:{statistic.total}</div>
+                    <div>Số phone thành công:{statistic.success}</div>
+                    <div>Số phone thất bại:{statistic.fail}</div>
+                </div>
             </div>
+
             <div style={{ width: '100%', display: 'flex' }}>
                 <div style={{ width: '20%', margin: '10px' }}>
                     <Button type="primary" icon={<RocketOutlined />} onClick={handleGetPhone}>
