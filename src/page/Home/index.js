@@ -13,12 +13,20 @@ function Home() {
     const [listNum, setListNum] = useState([])
     const [listUrl, setListUrl] = useState([])
     const [statics, setStatics] = useState({ total: 0, success: 0, failed: 0 })
+    const [statistic, setStatistic] = useState({ total: 0, success: 0, fail: 0 })
     const [getCode, setGetCode] = useState({ path: '', port: null, num: null })
-    const [portActive, setPortActive] = useState()
     const { post, get } = Requests()
+    const getCurrentDate = () => {
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+    }
+    const [dateStatic, setDateStatic] = useState(getCurrentDate())
     const initData = async () => {
-        const staticsData = await get(`getInfoStatics`)
-        console.log(staticsData)
+        // const staticsData = await get(`getInfoStatics/${dateStatic}`)
+        // console.log(staticsData)
         // setStatics((.data)
     }
     useEffect(() => {
@@ -26,6 +34,7 @@ function Home() {
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
         getListCurrentPhone(0)
+        getStatistic()
         initData()
         handleHome([])
     }, [])
@@ -42,8 +51,11 @@ function Home() {
     const handleGetPhone = async () => {
         try {
             setIsLoading(true)
+            const resAPI = await get(`http://trum99.ddns.net:5000/getAPI`)
             const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
-            if (response?.data && response?.data?.length === 0) {
+            if (response?.data === -1) {
+                openNotificationWithIcon('warning', 'Hây lấy hết phone hiện tại trước khi chạy lấy danh sách phone mới')
+            } else if (response?.data && response?.data?.length === 0) {
                 openNotificationWithIcon('warning', 'Không có số mới', response.data)
             }
             setListNum(response?.data)
@@ -69,65 +81,57 @@ function Home() {
         }
     }
 
-    const handleGetOnePhone = async () => {
+    const getStatistic = async () => {
         try {
-            setIsLoading(true)
-            const response = await get('http://trum99.ddns.net:5000/get-phone')
-            if (response.data !== -1) {
-                openNotificationWithIcon('info', 'Phone', response.data)
-            } else {
-                openNotificationWithIcon('warning', 'Hết phone')
+            const response = await get(`http://trum99.ddns.net:5000/statistic`)
+            const data = response.data
+            if (data) {
+                setStatistic(data)
+                if (parseInt(data.success) + parseInt(data.fail) === data.total && parseInt(data.total) !== 0) {
+                    openNotificationWithIcon('warning', 'Đã lấy hết số, hãy thay sim mới')
+                }
             }
-            getListCurrentPhone(0)
-            setIsLoading(false)
         } catch (error) {
-            console.error('Error fetching phone number:', error)
+            console.error('Error getStatistic:', error)
         }
     }
 
-    const handleActivePort = async () => {
-        try {
-            setIsLoading(true)
-            const response = await get(`http://trum99.ddns.net:5000/active/${portActive}`)
-            openNotificationWithIcon('info', response.data)
-            setIsLoading(false)
-        } catch (error) {
-            console.error('Error active port number:', error)
-        }
-    }
-
-    const [isCopy, setIsCopy] = useState(false)
-    const [copyText, setCopyText] = useState('1233333')
-    const handleGetVoice = async () => {
-        //save path xuống localstorage
-        localStorage.setItem('pathGetVoice', JSON.stringify(getCode.path))
-        let filePath = `${getCode.path}`.replaceAll('/', '\\')
+    useEffect(() => {
+        console.log('---=>', statics)
+    }, [statics])
+    useEffect(() => {
+        let filePath = `C:\\Users\\DK\\Documents\\WYT\\DangsModem\\DangsModem\\Voices\\backup`.replaceAll('/', '\\')
         const body = {
             folderPath: filePath,
         }
-        console.log('gọi api upload ==>lấy link')
 
         const intervalId = setInterval(async () => {
             const result = await post('http://localhost:5000/uploadFromPath', body)
-            const dataUrl = await get('/getvoice/0/0')
-            setStatics((await get(`http://trum99.ddns.net:5000/getInfoStatics`)).data)
-            setListUrl(dataUrl.data.filter((data) => data !== null))
+            // const dataUrl = await get('/getvoice/0/0')
+            setStatics((await get(`http://trum99.ddns.net:5000/getInfoStatics/${dateStatic}`)).data)
+            //setListUrl(dataUrl.data.filter((data) => data !== null))
 
-            console.log('RESULT->', result)
-            if (result == undefined || result.status !== 200) {
-                // setIsCopy(false)
-                // setCopyText(null)
-                openNotificationWithIcon('error', 'Thất bại', result.data.error)
-            } else {
-                openNotificationWithIcon('success', 'Thành công', result.data.message)
-                // setIsCopy(true)
-                // setCopyText(result.data.message.split('|->')[1])
-            }
+            // console.log('RESULT->', result)
+            // if (result == undefined || result.status !== 200) {
+            //     // setIsCopy(false)
+            //     // setCopyText(null)
+            //     openNotificationWithIcon('error', 'Thất bại', result.data.error)
+            // } else {
+            //     openNotificationWithIcon('success', 'Thành công', result.data.message)
+            //     // setIsCopy(true)
+            //     // setCopyText(result.data.message.split('|->')[1])
+            // }
         }, 2000)
 
         // Clear interval khi component bị unmount để tránh memory leaks
         return () => clearInterval(intervalId)
+    }, [dateStatic])
+
+    const handleGetVoice = async () => {
+        //save path xuống localstorage
+        localStorage.setItem('pathGetVoice', JSON.stringify(getCode.path))
     }
+
     const handleOnchangeInput = (e) => {
         console.log(e)
         let tmp = { ...getCode }
@@ -254,13 +258,13 @@ function Home() {
             ...getColumnSearchProps('port'),
         },
         {
-            title: 'Số điện thoại',
+            title: 'Phone Number',
             dataIndex: 'num',
             key: 'num',
             ...getColumnSearchProps('num'),
         },
         {
-            title: 'Trạng thái',
+            title: 'Status',
             dataIndex: 'status',
             key: 'status',
             ...getColumnSearchProps('status'),
@@ -290,64 +294,44 @@ function Home() {
         <>
             {isLoading && <Spin size="large" fullscreen />}
             {contextHolder}
-            <div>
-                <h3>Thống kê</h3>
-                <div>Tổng:{statics.total}</div>
-                <div>Thành công:{statics.success}</div>
-                <div>Thất bại:{statics.failed}</div>
+            <div style={{ width: '100%', display: 'flex' }}>
+                <div style={{ width: '50%' }}>
+                    <h3>STATICS DATE:{dateStatic}</h3>
+                    <div>TOTAL:{statics.total}</div>
+                    <div>SUCCESS:{statics.success}</div>
+                    <div>FAILED:{statics.failed}</div>
+                </div>
+
+                <div style={{ width: '50%' }}>
+                    <h3>Statistics on the number of sims</h3>
+                    <div>Total Phone:{statistic.total}</div>
+                    <div>Success:{statistic.success}</div>
+                    <div>failed:{statistic.fail}</div>
+                </div>
+            </div>
+            <div style={{ width: '100%', display: 'flex' }}>
+                <div style={{ width: '40%', margin: '10px' }}>
+                    <span>Date statics:</span>
+                    <Input
+                        onChange={(e) => {
+                            console.log('set lại giá trị ', e.target.value)
+                            setDateStatic(e.target.value)
+                        }}
+                        name="path"
+                        value={dateStatic}
+                        placeholder="Vui lòng nhập vào đường dẫn chứa voice"
+                    ></Input>
+                </div>
             </div>
             <div style={{ width: '100%', display: 'flex' }}>
                 <div style={{ width: '20%', margin: '10px' }}>
                     <Button type="primary" icon={<RocketOutlined />} onClick={handleGetPhone}>
                         {' '}
-                        Chạy lấy số điện thoại
-                    </Button>
-                </div>
-                {/* <div style={{ width: '20%', margin: '10px' }}>
-                    <Button type="primary" icon={<DeliveredProcedureOutlined />} onClick={handleGetOnePhone}>
-                        {' '}
-                        Lấy 1 số
-                    </Button>
-                </div> */}
-
-                {/* <div style={{ width: '20%', margin: '10px' }}>
-                    <Input
-                        onChange={(e) => {
-                            setPortActive(e.target.value)
-                        }}
-                        value={portActive}
-                        name="port"
-                        placeholder="vui lòng nhập port"
-                    ></Input>
-                    <Button onClick={handleActivePort}> Active Port</Button>
-                </div> */}
-                <div style={{ width: '20%', margin: '10px' }}>
-                    <Button danger onClick={handleGetPhone}>
-                        Restart
+                        RUN GET PHONE
                     </Button>
                 </div>
             </div>
             <Table style={{ margin: '20px 80px' }} dataSource={listNum} columns={columns} />
-
-            <div style={{ width: '100%', display: 'flex' }}>
-                <div style={{ width: '40%', margin: '10px' }}>
-                    <span>Path:</span>
-                    <Input
-                        onChange={(e) => {
-                            handleOnchangeInput(e)
-                        }}
-                        name="path"
-                        value={getCode.path}
-                        placeholder="Vui lòng nhập vào đường dẫn chứa voice"
-                    ></Input>
-                </div>
-                <div style={{ width: '20%', margin: '10px', marginTop: 30 }}>
-                    <Button type="primary" icon={<DownloadOutlined />} onClick={handleGetVoice}>
-                        Bắt Đầu Lấy Link Voice
-                    </Button>
-                </div>
-            </div>
-            <Table style={{ margin: '20px 80px' }} dataSource={listUrl} columns={columns2} />
         </>
     )
 }
