@@ -26,7 +26,7 @@ function Home() {
         const tmp = { ...getCode, path: pathGetVoice }
         setGetCode(tmp)
         getListCurrentPhone(0)
-        // getStatistic()
+        getStatistic()
         initData()
         handleHome([])
     }, [])
@@ -44,7 +44,7 @@ function Home() {
         try {
             setIsLoading(true)
             const resAPI = await get(`http://trum99.ddns.net:5000/getAPI`)
-            const response = await get(`http://trum99.ddns.net:5000/get-current-phone-active`)
+            const response = await get(`http://trum99.ddns.net:5000/get-list-phone-active`)
             if (response?.data === -1) {
                 openNotificationWithIcon('warning', 'Hây lấy hết phone hiện tại trước khi chạy lấy danh sách phone mới')
             } else if (response?.data && response?.data?.length === 0) {
@@ -82,12 +82,12 @@ function Home() {
         try {
             const response = await get(`http://trum99.ddns.net:5000/statistic`)
             const data = response.data
-            setStatistic(data)
-            if (parseInt(data.success) + parseInt(data.fail) === data.total) {
-                openNotificationWithIcon('warning', 'Đã lấy hết số, hãy thay sim mới', response.data)
+            if (data) {
+                setStatistic(data)
+                if (parseInt(data.success) + parseInt(data.fail) === data.total && parseInt(data.total) !== 0) {
+                    openNotificationWithIcon('warning', 'Đã lấy hết số, hãy thay sim mới')
+                }
             }
-            setListNum(response.data)
-            setIsLoading(false)
         } catch (error) {
             console.error('Error getStatistic:', error)
         }
@@ -325,11 +325,6 @@ function Home() {
                     <Button type="primary" icon={<RocketOutlined />} onClick={handleGetPhone}>
                         {' '}
                         Chạy lấy số điện thoại
-                    </Button>
-                </div>
-                <div style={{ width: '20%', margin: '10px' }}>
-                    <Button danger onClick={handleGetPhone}>
-                        Restart
                     </Button>
                 </div>
             </div>
