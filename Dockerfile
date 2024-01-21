@@ -1,13 +1,33 @@
-FROM node:18-alpine as build
-
+FROM node:18-alpine as base
 WORKDIR /app
 COPY package*.json ./
-RUN yarn install
-COPY . .
-RUN yarn run build
+EXPOSE 3000
 
-FROM nginx:stable-alpine
-COPY --from=build /app/build /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM base as builder
+WORKDIR /app
+COPY . .
+RUN npm run build
+
+
+FROM base as production
+WORKDIR /app
+
+ENV NODE_ENV=production
+RUN npm ci
+
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
+USER nextjs
+
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/public ./public
+
+CMD npm start
+
+FROM base as dev
+RUN npm install 
+COPY . .
+CMD npm run start
